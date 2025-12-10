@@ -15,11 +15,9 @@ const registrarPaciente = async(req,res)=>{
 
         const password = Math.random().toString(36).toUpperCase().slice(2, 5)
 
-        //Registro de un nuevo paciente 
         const nuevoPaciente = new Paciente({
             ...req.body,
             passwordPropietario: await Paciente.prototype.encryptPassword("VET"+password),
-            //Aqui ya se registra al veterinario que va a registrara a este paciente
             veterinario: req.veterinarioHeader._id
         })
 
@@ -45,6 +43,23 @@ const registrarPaciente = async(req,res)=>{
 }
 
 
+const listarPacientes = async (req,res)=>{
+    try {
+        //Paso 3 consulta a la base de datos
+        //find para buscar en la BD 
+        //se elimina la fecha de creacion, la fecha de salida
+        //con el select se quitan los campos que no se desean
+        //Metodo populate para mostrar los campos relacionados, Cambiar un ID por la información completa del documento relacionado.
+        const pacientes = await Paciente.find({ estadoMascota: true, veterinario: req.veterinarioHeader._id }).select("-salida -createdAt -updatedAt -__v -passwordPropietario").populate('veterinario','_id nombre apellido')
+        res.status(200).json(pacientes)
+
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ msg: `❌ Error en el servidor - ${error}` })
+    }
+}
+
 export{
-    registrarPaciente
+    registrarPaciente,
+    listarPacientes
 }
